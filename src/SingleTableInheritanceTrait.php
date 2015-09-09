@@ -152,7 +152,11 @@ trait SingleTableInheritanceTrait {
     $modelClass = get_class($this);
     $classType = property_exists($modelClass, 'singleTableType') ? $modelClass::$singleTableType : null;
     if ($classType) {
-      $this->{static::$singleTableTypeField} = $classType;
+      if ($this->hasGetMutator(static::$singleTableTypeField)) {
+        $this->{static::$singleTableTypeField} = $this->mutateAttribute(static::$singleTableTypeField, $classType);
+      } else {
+        $this->{static::$singleTableTypeField} = $classType;
+      }
     } else {
       // We'd like to be able to declare non-leaf classes in the hierarchy as abstract so they can't be instantiated and saved.
       // However, Eloquent expects to instantiate classes at various points. Therefore throw an exception if we try to save
@@ -165,7 +169,7 @@ trait SingleTableInheritanceTrait {
    * Override the Eloquent method to construct a model of the type given by the value of singleTableTypeField
    * @param array $attributes
    */
-  public function newFromBuilder($attributes = array()) {
+  public function newFromBuilder($attributes = array(), $connection = null) {
     $typeField = static::$singleTableTypeField;
 
     $classType = isset($attributes->$typeField) ? $attributes->$typeField : null;
@@ -176,6 +180,7 @@ trait SingleTableInheritanceTrait {
         $class = $childTypes[$classType];
         $instance = (new $class)->newInstance([], true);
         $instance->setFilteredAttributes((array) $attributes);
+        $instance->setConnection($connection ?: $this->connection);
         return $instance;
       } else {
         // Throwing either of the exceptions suggests something has gone very wrong with the Global Scope
