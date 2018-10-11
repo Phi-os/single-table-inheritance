@@ -9,7 +9,7 @@ Single Table Inheritance
 [![License](https://poser.pugx.org/nanigans/single-table-inheritance/license.svg)](https://packagist.org/packages/nanigans/single-table-inheritance)
 [![Dependency Status](https://www.versioneye.com/php/nanigans:single-table-inheritance/badge.svg)](https://www.versioneye.com/php/nanigans:single-table-inheritance)
 
-Single Table Inheritance is a trait for Laravel 5.1+ Eloquent models that allows multiple models to be stored in the same database table. We support a few key features
+Single Table Inheritance is a trait for Laravel 5.2+ Eloquent models that allows multiple models to be stored in the same database table. We support a few key features
 
  * Implemented as a Trait so that it plays nice with others, such as Laravel's `SoftDeletingTrait` or the excellent [Validating](https://github.com/dwightwatson/validating), without requiring a complicated mess of Eloquent Model subclasses.
  * Allow arbitrary class hierarchies not just two-level parent-child relationships. 
@@ -23,13 +23,13 @@ Single Table Inheritance is a trait for Laravel 5.1+ Eloquent models that allows
 Simply add the package to your `composer.json` file and run `composer update`.
 
 ```
-"nanigans/single-table-inheritance": "0.5.*"
+"nanigans/single-table-inheritance": "0.7.*"
 ```
 
 Or go to your project directory where the `composer.json` file is located and type:
 
 ```sh
-composer require "nanigans/single-table-inheritance:0.5.*"
+composer require "nanigans/single-table-inheritance:0.7.*"
 ```
 
 # Overview
@@ -39,7 +39,7 @@ Getting started with the Single Table Inheritance Trait is simple. Add the const
 ```php
 use Nanigans\SingleTableInheritance\SingleTableInheritanceTrait;
 
-class Vehicle extends Eloquent
+class Vehicle extends Model
 {
   use SingleTableInheritanceTrait;
 
@@ -47,7 +47,7 @@ class Vehicle extends Eloquent
 
   protected static $singleTableTypeField = 'type';
 
-  protected static $singleTableSubclasses = ['Car', 'Truck'];
+  protected static $singleTableSubclasses = [Car::class, Truck::class];
 }
 
 class Car extends Vehicle
@@ -85,7 +85,7 @@ It's not uncommon to have many levels in your class hierarchy. Its easy to defin
 ```php
 use Nanigans\SingleTableInheritance\SingleTableInheritanceTrait;
 
-class Vehicle extends Eloquent
+class Vehicle extends Model
 {
   use SingleTableInheritanceTrait;
 
@@ -93,12 +93,12 @@ class Vehicle extends Eloquent
 
   protected static $singleTableTypeField = 'type';
 
-  protected static $singleTableSubclasses = ['MotorVehicle', 'Bike'];
+  protected static $singleTableSubclasses = [MotorVehicle::class, Bike::class];
 }
 
 class MotorVehicle extends Vehicle
 {
-  protected static $singleTableSubclasses = ['Car', 'Truck'];
+  protected static $singleTableSubclasses = [Car::class, Truck::class];
 }
 
 class Car extends MotorVehicle
@@ -122,7 +122,7 @@ class Bike extends Vehicle
 Eloquent is extremely lenient in allowing you to get and set attributes. There is no mechanism to declare the set of attributes that a model supports. If you misuse and attribute it typically results in a SQL error if you try to issue an insert or update for a column that doesn't exist. By default the SingleTableInheritanceTrait operates the same way. However, when storing a class hierarchy in a single table there are often database columns that don't apply to all classes in the hierarchy. That Eloquent will store values in those columns makes it considerably easier to write bugs. There, the SingleTableInheritanceTrait allows you to define which attributes are persisted. The set of persisted attributes is also inherited from parent classes.
 
 ```php
-class Vehicle extends Eloquent
+class Vehicle extends Model
 {
   protected static $persisted = ['color']
 }
@@ -144,7 +144,7 @@ For convenience the model primary key and any dates are automatically added to t
 If you are restricting the persisted attribute and your model has BelongsTo relations then you must include the foreign key column of the BelongsTo relation. For example:
 
 ```php
-class Vehicle extends Eloquent
+class Vehicle extends Model
 {
   protected static $persisted = ['color', 'owner_id'];
   
