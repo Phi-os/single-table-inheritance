@@ -151,7 +151,7 @@ trait SingleTableInheritanceTrait {
   public function setSingleTableType() {
     $modelClass = get_class($this);
     $classType = property_exists($modelClass, 'singleTableType') ? $modelClass::$singleTableType : null;
-    if ($classType) {
+    if ($classType !== null) {
       if ($this->hasGetMutator(static::$singleTableTypeField)) {
         $this->{static::$singleTableTypeField} = $this->mutateAttribute(static::$singleTableTypeField, $classType);
       } else {
@@ -171,15 +171,16 @@ trait SingleTableInheritanceTrait {
    */
   public function newFromBuilder($attributes = array(), $connection = null) {
     $typeField = static::$singleTableTypeField;
+    $attributes = (array) $attributes;
 
-    $classType = isset($attributes->$typeField) ? $attributes->$typeField : null;
+    $classType = array_key_exists($typeField, $attributes) ? $attributes[$typeField] : null;
 
-    if ($classType) {
+    if ($classType !== null) {
       $childTypes = static::getSingleTableTypeMap();
       if (array_key_exists($classType, $childTypes)) {
         $class = $childTypes[$classType];
         $instance = (new $class)->newInstance([], true);
-        $instance->setFilteredAttributes((array) $attributes);
+        $instance->setFilteredAttributes($attributes);
         $instance->setConnection($connection ?: $this->connection);
         return $instance;
       } else {
